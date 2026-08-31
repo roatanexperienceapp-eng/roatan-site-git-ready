@@ -1,0 +1,1338 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Roatan Experience App — Book Roatan's Best Excursions</title>
+<meta name="description" content="Book Roatan's top-rated excursions: water taxis, dolphin snorkel tours, cultural food tours, reef adventures and more. Hassle-free booking with local island guides.">
+
+<!-- Favicon: self-contained inline SVG, matches the site's brand mark (no external file needed) -->
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='12' fill='%23FF6F5C'/%3E%3Cpath d='M4 14c1.5 1.5 3 1.5 4.5 0s3-1.5 4.5 0 3 1.5 4.5 0' fill='none' stroke='white' stroke-width='1.6' stroke-linecap='round'/%3E%3Cpath d='M4 17.5c1.5 1.5 3 1.5 4.5 0s3-1.5 4.5 0 3 1.5 4.5 0' fill='none' stroke='white' stroke-width='1.6' stroke-linecap='round'/%3E%3C/svg%3E">
+
+<!-- Open Graph / social share preview -->
+<meta property="og:type" content="website">
+<meta property="og:title" content="Roatan Experience App — Book Roatan's Best Excursions">
+<meta property="og:description" content="Book Roatan's top-rated excursions: water taxis, dolphin snorkel tours, cultural food tours, reef adventures and more. Hassle-free booking with local island guides.">
+<meta name="theme-color" content="#0A3F3B">
+
+<!-- Fonts: Fraunces (warm, characterful display serif) + Manrope (clean geometric UI sans) + JetBrains Mono (ticket-stub codes) -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;0,9..144,600;0,9..144,700;0,9..144,800;1,9..144,500;1,9..144,600&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+
+<!-- Tailwind CDN -->
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          ink: '#1C2624',
+          sea: { deep: '#0A3F3B', DEFAULT: '#12786D', bright: '#1FAF9E', pale: '#E4F3EF' },
+          coral: { DEFAULT: '#FF6F5C', dark: '#E5543F', pale: '#FFE6E0' },
+          sand: { DEFAULT: '#F6EEDF', deep: '#EAD9BB', dark: '#CDB48A' },
+          paper: '#FFFCF6'
+        },
+        fontFamily: {
+          display: ['Fraunces', 'ui-serif', 'Georgia', 'serif'],
+          sans: ['Manrope', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+          mono: ['"JetBrains Mono"', 'ui-monospace', 'monospace']
+        },
+        boxShadow: {
+          ticket: '0 20px 45px -20px rgba(10,63,59,0.35)',
+          card: '0 12px 30px -12px rgba(28,38,36,0.18)'
+        }
+      }
+    }
+  }
+</script>
+
+<style>
+  :root{
+    --notch: 24px; /* ticket perforation notch size */
+  }
+  html { scroll-behavior: smooth; }
+  body { font-family: 'Manrope', sans-serif; color: #1C2624; background:#FFFCF6; }
+  h1,h2,h3, .font-display { font-family: 'Fraunces', serif; }
+
+  section[id] { scroll-margin-top: 120px; }
+
+  /* Hide Google Translate's default banner + highlight styling; we drive translation via our own button */
+  .goog-te-banner-frame.skiptranslate{ display:none !important; }
+  body{ top:0 !important; position:static !important; }
+  .goog-text-highlight{ background:none !important; box-shadow:none !important; }
+  #google_translate_element{ display:none !important; }
+
+  /* Custom scrollbar for category rail on mobile */
+  .no-scrollbar::-webkit-scrollbar{ display:none; }
+  .no-scrollbar{ -ms-overflow-style:none; scrollbar-width:none; }
+
+  /* Ticket perforation: two half-circle notches cut from the card edges, colored to match the page section behind the card */
+  .ticket-notch-left::before,
+  .ticket-notch-right::after{
+    content:"";
+    position:absolute;
+    top:50%;
+    width: var(--notch);
+    height: var(--notch);
+    background: var(--notch-bg, #F6EEDF);
+    border-radius: 9999px;
+    transform: translateY(-50%);
+    z-index: 3;
+  }
+  .ticket-notch-left::before{ left: calc(var(--notch) / -2); }
+  .ticket-notch-right::after{ right: calc(var(--notch) / -2); }
+
+  .ticket-divider{
+    border-top: 2px dashed rgba(28,38,36,0.18);
+  }
+
+  .card-lift{ transition: transform .35s cubic-bezier(.2,.8,.2,1), box-shadow .35s ease; }
+  .card-lift:hover{ transform: translateY(-6px) rotate(-0.4deg); }
+
+  /* Reveal-on-scroll */
+  .reveal{ opacity:0; transform: translateY(18px); transition: opacity .6s ease, transform .6s ease; }
+  .reveal.in{ opacity:1; transform:none; }
+
+  @media (prefers-reduced-motion: reduce){
+    .reveal{ opacity:1; transform:none; transition:none; }
+    .card-lift:hover{ transform:none; }
+  }
+
+  /* Wave divider fill matches the section below it */
+  .wave-fill{ fill:#F6EEDF; }
+
+  /* Guest stepper buttons */
+  .stepper-btn{ width:40px; height:40px; }
+
+  /* Category chip active state */
+  .chip{ transition: all .2s ease; }
+  .chip[data-active="true"]{ background:#12786D; color:#FFFCF6; box-shadow: 0 8px 20px -8px rgba(18,120,109,.6); }
+  .chip[data-active="false"]{ background:#FFFCF6; color:#1C2624; }
+
+  /* Modal */
+  #bookingBackdrop{ backdrop-filter: blur(4px); }
+
+  input[type="date"]::-webkit-calendar-picker-indicator{ cursor:pointer; }
+
+  ::selection{ background:#FF6F5C; color:#FFFCF6; }
+</style>
+</head>
+
+<body class="bg-paper text-ink antialiased">
+
+<!-- ============ SKIP LINK ============ -->
+<a href="#excursions" class="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[100] focus:bg-coral focus:text-white focus:px-4 focus:py-2 focus:rounded-full">Skip to excursions</a>
+
+<!-- ============ GOOGLE TRANSLATE (hidden widget, driven by our own language button) ============ -->
+<div id="google_translate_element" class="notranslate" style="display:none"></div>
+<script>
+  function googleTranslateElementInit() {
+    new google.translate.TranslateElement({
+      pageLanguage: 'en',
+      includedLanguages: 'en,es,fr,de,it,pt',
+      autoDisplay: false
+    }, 'google_translate_element');
+  }
+</script>
+<script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+
+<!-- ============ TOP UTILITY BAR (always visible: email, WhatsApp, Zelle, language) ============ -->
+<div id="utilityBar" class="fixed top-0 inset-x-0 z-50 bg-ink text-paper h-9 flex items-center notranslate">
+  <div class="max-w-7xl mx-auto w-full px-3 sm:px-8 flex items-center justify-between gap-4">
+    <div class="flex items-center gap-4 overflow-x-auto no-scrollbar whitespace-nowrap">
+      <a href="mailto:Roatanexperienceapp@gmail.com" class="flex items-center gap-1.5 text-[11px] sm:text-xs font-medium text-paper/85 hover:text-white transition">
+        <svg class="shrink-0" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M2 7l10 6 10-6"/></svg>
+        Roatanexperienceapp@gmail.com
+      </a>
+      <a href="https://wa.me/12072135757" target="_blank" rel="noopener" class="flex items-center gap-1.5 text-[11px] sm:text-xs font-medium text-paper/85 hover:text-white transition">
+        <svg class="shrink-0" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.5 8.5 0 01-12.4 7.5L3 20l1.1-5.4A8.5 8.5 0 1121 11.5z"/><path d="M8.5 10.5c0 3 2.5 5.5 5.5 5.5"/></svg>
+        WhatsApp +1 207-213-5757
+      </a>
+      <span class="flex items-center gap-1.5 text-[11px] sm:text-xs font-medium text-paper/85">
+        <svg class="shrink-0" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>
+        Zelle: Roatanexperienceapp@gmail.com
+      </span>
+    </div>
+
+    <div class="relative shrink-0">
+      <button id="langToggle" aria-label="Change language" class="flex items-center gap-1 text-[11px] sm:text-xs font-semibold text-paper/90 hover:text-white transition pl-2">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.5 4 5.7 4 9s-1.5 6.5-4 9c-2.5-2.5-4-5.7-4-9s1.5-6.5 4-9z"/></svg>
+        <span id="langCurrentLabel">EN</span>
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+      </button>
+      <div id="langMenu" class="hidden absolute right-0 top-full mt-2 w-48 bg-paper text-ink rounded-xl shadow-2xl overflow-hidden z-50">
+        <button type="button" class="lang-option w-full text-left px-4 py-2.5 text-sm hover:bg-sand flex items-center justify-between" data-lang="en">English <span class="text-ink/40 text-xs">EN</span></button>
+        <button type="button" class="lang-option w-full text-left px-4 py-2.5 text-sm hover:bg-sand flex items-center justify-between" data-lang="es">Español <span class="text-ink/40 text-xs">ES</span></button>
+        <button type="button" class="lang-option w-full text-left px-4 py-2.5 text-sm hover:bg-sand flex items-center justify-between" data-lang="fr">Français <span class="text-ink/40 text-xs">FR</span></button>
+        <button type="button" class="lang-option w-full text-left px-4 py-2.5 text-sm hover:bg-sand flex items-center justify-between" data-lang="de">Deutsch <span class="text-ink/40 text-xs">DE</span></button>
+        <button type="button" class="lang-option w-full text-left px-4 py-2.5 text-sm hover:bg-sand flex items-center justify-between" data-lang="it">Italiano <span class="text-ink/40 text-xs">IT</span></button>
+        <button type="button" class="lang-option w-full text-left px-4 py-2.5 text-sm hover:bg-sand flex items-center justify-between" data-lang="pt">Português <span class="text-ink/40 text-xs">PT</span></button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ FLOATING WHATSAPP BUTTON (desktop — mobile has its own in the sticky bar below) ============ -->
+<a href="https://wa.me/12072135757" target="_blank" rel="noopener" aria-label="Chat with us on WhatsApp"
+   class="hidden md:flex fixed z-40 right-6 bottom-6 w-14 h-14 rounded-full bg-[#25D366] shadow-2xl items-center justify-center hover:scale-105 transition">
+  <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.5 8.5 0 01-12.4 7.5L3 20l1.1-5.4A8.5 8.5 0 1121 11.5z"/><path d="M8.5 10.5c0 3 2.5 5.5 5.5 5.5"/></svg>
+</a>
+
+<!-- ============ NAV ============ -->
+<header id="siteHeader" class="fixed top-9 inset-x-0 z-40 transition-colors duration-300">
+  <nav class="max-w-7xl mx-auto flex items-center justify-between px-5 sm:px-8 h-[72px]">
+    <a href="#top" class="flex items-center gap-2.5 group">
+      <span class="grid place-items-center w-10 h-10 rounded-full bg-coral text-white shadow-card">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 16c1.5 1.5 3 1.5 4.5 0s3-1.5 4.5 0 3 1.5 4.5 0 3-1.5 4.5 0"/><path d="M2 20c1.5 1.5 3 1.5 4.5 0s3-1.5 4.5 0 3 1.5 4.5 0 3-1.5 4.5 0"/><path d="M12 4v9"/><path d="M8 7l4-3 4 3"/></svg>
+      </span>
+      <span class="font-display font-semibold text-lg sm:text-xl leading-none nav-text text-paper">Roatan <span class="italic font-medium">Experience</span></span>
+    </a>
+
+    <div class="hidden md:flex items-center gap-7 nav-text text-paper/90 font-medium text-[15px]">
+      <a href="#excursions" class="hover:text-coral transition-colors">Excursions</a>
+      <a href="#cruise-schedule" class="hover:text-coral transition-colors">Cruise Schedule</a>
+      <a href="#reviews" class="hover:text-coral transition-colors">Reviews</a>
+      <a href="#guarantees" class="hover:text-coral transition-colors">Guarantees</a>
+      <a href="#footer" class="hover:text-coral transition-colors">Contact</a>
+    </div>
+
+    <div class="flex items-center gap-3">
+      <button onclick="openBookingModal()" class="hidden sm:inline-flex items-center gap-2 bg-coral hover:bg-coral-dark active:scale-95 transition text-white font-semibold text-sm px-5 py-2.5 rounded-full shadow-card">
+        Book Now
+      </button>
+      <button id="menuToggle" aria-label="Open menu" class="md:hidden grid place-items-center w-11 h-11 rounded-full bg-white/10 nav-text text-paper">
+        <svg id="menuIconOpen" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+        <svg id="menuIconClose" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" class="hidden"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </div>
+  </nav>
+
+  <!-- Mobile menu -->
+  <div id="mobileMenu" class="md:hidden hidden bg-sea-deep/98 border-t border-white/10 px-5 pb-6 pt-2">
+    <div class="flex flex-col gap-1 text-paper font-medium text-base">
+      <a href="#excursions" class="py-3 border-b border-white/10">Excursions</a>
+      <a href="#cruise-schedule" class="py-3 border-b border-white/10">Cruise Schedule</a>
+      <a href="#reviews" class="py-3 border-b border-white/10">Reviews</a>
+      <a href="#guarantees" class="py-3 border-b border-white/10">Guarantees</a>
+      <a href="#footer" class="py-3">Contact</a>
+      <button onclick="openBookingModal()" class="mt-4 bg-coral text-white font-semibold py-3.5 rounded-full">Book an Excursion</button>
+    </div>
+  </div>
+</header>
+
+<script>
+  // Header background solidifies on scroll; transparent-over-hero otherwise
+  const header = document.getElementById('siteHeader');
+  const onScrollHeader = () => {
+    if (window.scrollY > 40) header.classList.add('bg-sea-deep/95','backdrop-blur','shadow-lg');
+    else header.classList.remove('bg-sea-deep/95','backdrop-blur','shadow-lg');
+  };
+  document.addEventListener('scroll', onScrollHeader);
+
+  // Language switcher: drives the hidden Google Translate widget
+  const langToggle = document.getElementById('langToggle');
+  const langMenu = document.getElementById('langMenu');
+  langToggle.addEventListener('click', (e) => {
+    e.stopPropagation();
+    langMenu.classList.toggle('hidden');
+  });
+  document.addEventListener('click', () => langMenu.classList.add('hidden'));
+
+  function setSiteLanguage(lang, label) {
+    document.getElementById('langCurrentLabel').textContent = label;
+    langMenu.classList.add('hidden');
+    const applyToCombo = () => {
+      const combo = document.querySelector('.goog-te-combo');
+      if (combo) {
+        combo.value = lang;
+        combo.dispatchEvent(new Event('change'));
+        return true;
+      }
+      return false;
+    };
+    if (!applyToCombo()) {
+      let attempts = 0;
+      const retry = setInterval(() => {
+        attempts++;
+        if (applyToCombo() || attempts > 20) clearInterval(retry);
+      }, 250);
+    }
+  }
+
+  document.querySelectorAll('.lang-option').forEach(btn => {
+    btn.addEventListener('click', () => setSiteLanguage(btn.dataset.lang, btn.dataset.lang.toUpperCase()));
+  });
+</script>
+
+<!-- ============ HERO ============ -->
+<section id="top" class="relative bg-sea-deep overflow-hidden pt-[108px]">
+  <!-- Self-contained illustration: island horizon at dusk, no external image dependency -->
+  <svg class="absolute inset-0 w-full h-full" viewBox="0 0 1440 700" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <defs>
+      <radialGradient id="heroSun" cx="78%" cy="22%" r="45%">
+        <stop offset="0%" stop-color="#FF6F5C" stop-opacity="0.55"/>
+        <stop offset="100%" stop-color="#FF6F5C" stop-opacity="0"/>
+      </radialGradient>
+      <linearGradient id="heroSky" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#0E5C52"/>
+        <stop offset="100%" stop-color="#0A3F3B"/>
+      </linearGradient>
+    </defs>
+    <rect width="1440" height="700" fill="url(#heroSky)"/>
+    <rect width="1440" height="700" fill="url(#heroSun)"/>
+    <!-- distant island -->
+    <path d="M0 430 Q220 360 420 410 T820 400 T1440 420 V700 H0 Z" fill="#12786D" opacity="0.55"/>
+    <!-- palm silhouettes -->
+    <g fill="#0A3F3B" opacity="0.8">
+      <path d="M180 470 q-6-60 30-84 q-34 6-46 34 q26-4 16-38 q22 18 20 46 q18-22 4-46 q26 10 22 44 q-4-8-16-8 q10 34-30 52 Z"/>
+      <path d="M1220 450 q-5-52 26-73 q-29 5-40 30 q23-4 14-33 q19 16 17 40 q16-19 4-40 q23 9 19 38 q-3-7-14-7 q9 30-26 45 Z"/>
+    </g>
+    <!-- layered waves -->
+    <path d="M0 520 Q180 500 360 520 T720 520 T1080 520 T1440 520 V700 H0 Z" fill="#12786D" opacity="0.45"/>
+    <path d="M0 570 Q220 550 440 570 T880 570 T1440 570 V700 H0 Z" fill="#1FAF9E" opacity="0.35"/>
+    <path d="M0 620 Q240 600 480 620 T960 620 T1440 620 V700 H0 Z" fill="#0A3F3B" opacity="0.8"/>
+    <!-- small boat -->
+    <g transform="translate(980,540)" fill="none" stroke="#F6EEDF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" opacity="0.5">
+      <path d="M-22 10l6-16h32l6 16"/>
+      <path d="M0 -6V-34l14 10-14 6"/>
+    </g>
+  </svg>
+  <!-- Legibility overlay: deep emerald gradient over the illustration -->
+  <div class="absolute inset-0 bg-gradient-to-b from-sea-deep/90 via-sea-deep/80 to-sea-deep"></div>
+
+  <!-- ambient blobs -->
+  <div class="pointer-events-none absolute -top-24 -right-24 w-[420px] h-[420px] rounded-full bg-sea-bright/20 blur-3xl"></div>
+  <div class="pointer-events-none absolute top-1/3 -left-20 w-[300px] h-[300px] rounded-full bg-coral/10 blur-3xl"></div>
+
+  <div class="relative max-w-7xl mx-auto px-5 sm:px-8 pt-14 pb-40 sm:pt-20 sm:pb-48 text-center">
+    <span class="inline-flex items-center gap-2 bg-white/10 text-sand text-xs sm:text-sm font-semibold tracking-wide px-4 py-2 rounded-full mb-6">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.9 6.26L22 9.27l-5 4.87L18.2 21 12 17.27 5.8 21 7 14.14l-5-4.87 7.1-1.01z"/></svg>
+      Rated 5.0 by island travelers
+    </span>
+
+    <h1 class="font-display font-semibold text-paper text-[2.5rem] leading-[1.08] sm:text-6xl lg:text-7xl max-w-4xl mx-auto">
+      Discover Roatan's <span class="italic text-coral">Ultimate</span> Excursions
+    </h1>
+
+    <p class="mt-6 text-sand/90 text-base sm:text-lg max-w-xl mx-auto leading-relaxed">
+      Unforgettable island experiences, hassle-free booking, and local island guides — all in one place.
+    </p>
+
+    <div class="mt-10 flex flex-col sm:flex-row items-center justify-center gap-3">
+      <a href="#excursions" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-coral hover:bg-coral-dark active:scale-95 transition text-white font-semibold text-base px-8 py-4 rounded-full shadow-ticket">
+        Explore All Excursions
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+      </a>
+      <button onclick="openBookingModal()" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-white/10 hover:bg-white/15 transition text-paper font-semibold text-base px-8 py-4 rounded-full border border-white/20">
+        Check a Date
+      </button>
+    </div>
+
+    <!-- Quick filter bar -->
+    <div class="mt-14 max-w-3xl mx-auto">
+      <p class="text-sand/60 text-xs uppercase tracking-[0.2em] font-semibold mb-3">Quick filter</p>
+      <div class="flex gap-2.5 overflow-x-auto no-scrollbar px-1 justify-center flex-wrap">
+        <button data-filter="all" onclick="setFilter('all', true)" class="hero-chip chip whitespace-nowrap text-sm font-semibold px-4 py-2.5 rounded-full border border-white/15" data-active="true">All Excursions</button>
+        <button data-filter="water" onclick="setFilter('water', true)" class="hero-chip chip whitespace-nowrap text-sm font-semibold px-4 py-2.5 rounded-full border border-white/15" data-active="false">Water &amp; Reef</button>
+        <button data-filter="motor" onclick="setFilter('motor', true)" class="hero-chip chip whitespace-nowrap text-sm font-semibold px-4 py-2.5 rounded-full border border-white/15" data-active="false">Motor &amp; Adventure</button>
+        <button data-filter="zipline" onclick="setFilter('zipline', true)" class="hero-chip chip whitespace-nowrap text-sm font-semibold px-4 py-2.5 rounded-full border border-white/15" data-active="false">Zip Lines Hub</button>
+        <button data-filter="park" onclick="setFilter('park', true)" class="hero-chip chip whitespace-nowrap text-sm font-semibold px-4 py-2.5 rounded-full border border-white/15" data-active="false">Animal Parks Hub</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Wave divider into sand section -->
+  <svg class="absolute bottom-0 left-0 w-full h-[70px] sm:h-[100px]" viewBox="0 0 1440 100" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+    <path class="wave-fill" d="M0,40 C240,90 480,0 720,30 C960,60 1200,90 1440,30 L1440,100 L0,100 Z"></path>
+  </svg>
+</section>
+
+<!-- ============ TRUST STRIP ============ -->
+<section class="bg-sand py-8 sm:py-10">
+  <div class="max-w-7xl mx-auto px-5 sm:px-8 grid grid-cols-2 md:grid-cols-4 gap-6 sm:gap-8 text-center">
+    <div class="reveal">
+      <p class="font-display text-2xl sm:text-3xl font-semibold text-sea-deep">5.0 <span class="text-coral">★</span></p>
+      <p class="text-xs sm:text-sm text-ink/60 font-medium mt-1">Average island rating</p>
+    </div>
+    <div class="reveal">
+      <p class="font-display text-2xl sm:text-3xl font-semibold text-sea-deep">On-Time</p>
+      <p class="text-xs sm:text-sm text-ink/60 font-medium mt-1">Cruise return guarantee</p>
+    </div>
+    <div class="reveal">
+      <p class="font-display text-2xl sm:text-3xl font-semibold text-sea-deep">Licensed</p>
+      <p class="text-xs sm:text-sm text-ink/60 font-medium mt-1">Local captains &amp; guides</p>
+    </div>
+    <div class="reveal">
+      <p class="font-display text-2xl sm:text-3xl font-semibold text-sea-deep">Free</p>
+      <p class="text-xs sm:text-sm text-ink/60 font-medium mt-1">Cancellation, 24hr notice</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ EXCURSIONS ============ -->
+<section id="excursions" class="bg-sand py-16 sm:py-24">
+  <div class="max-w-7xl mx-auto px-5 sm:px-8">
+    <div class="max-w-2xl reveal">
+      <p class="text-coral font-bold text-sm tracking-[0.18em] uppercase">The full excursion catalog</p>
+      <h2 class="font-display font-semibold text-3xl sm:text-5xl mt-3 text-sea-deep leading-tight">Every ticket is a trip worth taking</h2>
+      <p class="mt-4 text-ink/70 text-base sm:text-lg leading-relaxed">21 excursions, four ways to explore them. Filter by category or search for what you're after — every card opens up into the full trip details.</p>
+    </div>
+
+    <!-- Search + Filter controls -->
+    <div class="mt-10 flex flex-col lg:flex-row lg:items-center gap-4 lg:gap-6 reveal">
+      <div class="relative w-full lg:max-w-sm">
+        <svg class="absolute left-4 top-1/2 -translate-y-1/2 text-ink/40" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+        <input id="searchInput" type="text" placeholder="Search excursions or activities…" class="w-full bg-paper border border-sand-deep focus:border-sea-bright focus:ring-2 focus:ring-sea-bright/30 outline-none rounded-full pl-11 pr-4 py-3.5 text-sm placeholder:text-ink/40" oninput="filterCards()">
+      </div>
+
+      <div class="flex gap-2.5 overflow-x-auto no-scrollbar py-1 flex-1">
+        <button data-filter="all" onclick="setFilter('all')" class="section-chip chip whitespace-nowrap text-sm font-semibold px-4 py-2.5 rounded-full border border-sand-deep" data-active="true">All</button>
+        <button data-filter="water" onclick="setFilter('water')" class="section-chip chip whitespace-nowrap text-sm font-semibold px-4 py-2.5 rounded-full border border-sand-deep" data-active="false">Water &amp; Reef</button>
+        <button data-filter="motor" onclick="setFilter('motor')" class="section-chip chip whitespace-nowrap text-sm font-semibold px-4 py-2.5 rounded-full border border-sand-deep" data-active="false">Motor &amp; Adventure</button>
+        <button data-filter="zipline" onclick="setFilter('zipline')" class="section-chip chip whitespace-nowrap text-sm font-semibold px-4 py-2.5 rounded-full border border-sand-deep" data-active="false">Zip Lines Hub</button>
+        <button data-filter="park" onclick="setFilter('park')" class="section-chip chip whitespace-nowrap text-sm font-semibold px-4 py-2.5 rounded-full border border-sand-deep" data-active="false">Animal Parks Hub</button>
+      </div>
+    </div>
+
+    <!-- Hub banner: shown only when the Zip Lines or Animal Parks hub filter is active -->
+    <div id="hubBanner" class="hidden mt-8 reveal"></div>
+
+    <!-- Cards grid (populated by JS from the EXCURSIONS dataset) -->
+    <div id="cardsGrid" class="mt-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-7"></div>
+
+    <!-- No results state -->
+    <div id="noResults" class="hidden text-center py-16">
+      <p class="font-display text-2xl text-sea-deep">No excursions match that search</p>
+      <p class="text-ink/60 mt-2 text-sm">Try a different category or clear your search.</p>
+      <button onclick="document.getElementById('searchInput').value=''; setFilter('all');" class="mt-5 text-coral font-semibold text-sm underline underline-offset-4">Reset filters</button>
+    </div>
+  </div>
+</section>
+
+<!-- ============ REVIEWS ============ -->
+<section id="reviews" class="bg-sea-deep py-16 sm:py-24 relative overflow-hidden">
+  <div class="pointer-events-none absolute top-0 right-0 w-[380px] h-[380px] rounded-full bg-sea-bright/10 blur-3xl"></div>
+  <div class="max-w-7xl mx-auto px-5 sm:px-8 relative">
+    <div class="max-w-2xl reveal">
+      <p class="text-coral font-bold text-sm tracking-[0.18em] uppercase">Social proof</p>
+      <h2 class="font-display font-semibold text-3xl sm:text-5xl mt-3 text-paper leading-tight">Five stars, from real island days</h2>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12">
+      <div class="reveal bg-paper/95 rounded-3xl p-7 shadow-card">
+        <div class="text-coral text-lg">★★★★★</div>
+        <p class="text-ink/80 text-sm leading-relaxed mt-4">Our cruise ship guarantee actually mattered — the crew tracked our return window and had us back with time to spare. The dolphin tour itself was the highlight of our whole trip.</p>
+        <p class="font-display font-semibold text-sea-deep mt-5">Marisol T.</p>
+        <p class="text-xs text-ink/50">Carnival Cruise Guest</p>
+      </div>
+      <div class="reveal bg-paper/95 rounded-3xl p-7 shadow-card md:mt-8">
+        <div class="text-coral text-lg">★★★★★</div>
+        <p class="text-ink/80 text-sm leading-relaxed mt-4">Booked the water taxi to West Bay same-day through the app. Captain met us at the dock in ten minutes flat. So much easier than fighting for a taxi on the road.</p>
+        <p class="font-display font-semibold text-sea-deep mt-5">Dave K.</p>
+        <p class="text-xs text-ink/50">Returning traveler</p>
+      </div>
+      <div class="reveal bg-paper/95 rounded-3xl p-7 shadow-card">
+        <div class="text-coral text-lg">★★★★★</div>
+        <p class="text-ink/80 text-sm leading-relaxed mt-4">The cultural tour guide clearly loved the island — we tried fruit I'd never even heard of and left with a real sense of Roatan's history, not just a beach day.</p>
+        <p class="font-display font-semibold text-sea-deep mt-5">Priya N.</p>
+        <p class="text-xs text-ink/50">Family of four</p>
+      </div>
+    </div>
+
+    <p class="text-paper/40 text-xs mt-8 text-center reveal">Testimonials shown are illustrative placeholder content — swap in verified reviews before launch.</p>
+  </div>
+</section>
+
+<!-- ============ GUARANTEES ============ -->
+<section id="guarantees" class="bg-sand py-16 sm:py-24">
+  <div class="max-w-7xl mx-auto px-5 sm:px-8">
+    <div class="max-w-2xl reveal">
+      <p class="text-coral font-bold text-sm tracking-[0.18em] uppercase">Why book with us</p>
+      <h2 class="font-display font-semibold text-3xl sm:text-5xl mt-3 text-sea-deep leading-tight">Booking should feel as easy as the island days that follow</h2>
+    </div>
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 mt-12">
+      <div class="reveal bg-paper rounded-3xl p-7 shadow-card border border-sand-deep">
+        <div class="w-12 h-12 rounded-full bg-sea-pale grid place-items-center text-sea-deep mb-4">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+        </div>
+        <h3 class="font-display font-semibold text-lg text-sea-deep">On-time return, guaranteed</h3>
+        <p class="text-ink/65 text-sm mt-2 leading-relaxed">Cruise-ship guests are prioritized on the return leg — every itinerary is built around your ship's departure.</p>
+      </div>
+      <div class="reveal bg-paper rounded-3xl p-7 shadow-card border border-sand-deep">
+        <div class="w-12 h-12 rounded-full bg-coral-pale grid place-items-center text-coral-dark mb-4">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 21s-7-4.5-9.5-9A5.5 5.5 0 0112 6a5.5 5.5 0 019.5 6c-2.5 4.5-9.5 9-9.5 9z"/></svg>
+        </div>
+        <h3 class="font-display font-semibold text-lg text-sea-deep">Local guides, real knowledge</h3>
+        <p class="text-ink/65 text-sm mt-2 leading-relaxed">Every captain and guide is licensed, insured, and lives on the island they're showing you.</p>
+      </div>
+      <div class="reveal bg-paper rounded-3xl p-7 shadow-card border border-sand-deep">
+        <div class="w-12 h-12 rounded-full bg-sea-pale grid place-items-center text-sea-deep mb-4">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18"/></svg>
+        </div>
+        <h3 class="font-display font-semibold text-lg text-sea-deep">Flexible, transparent pricing</h3>
+        <p class="text-ink/65 text-sm mt-2 leading-relaxed">No hidden fees at the dock. Cancel free up to 24 hours ahead of any booked excursion.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ CRUISE SHIP SCHEDULE ============ -->
+<section id="cruise-schedule" class="bg-sea-deep py-16 sm:py-24 relative overflow-hidden">
+  <div class="pointer-events-none absolute bottom-0 left-0 w-[360px] h-[360px] rounded-full bg-coral/10 blur-3xl"></div>
+  <div class="max-w-5xl mx-auto px-5 sm:px-8 relative">
+    <div class="max-w-2xl reveal">
+      <p class="text-coral font-bold text-sm tracking-[0.18em] uppercase">Plan around your ship</p>
+      <h2 class="font-display font-semibold text-3xl sm:text-5xl mt-3 text-paper leading-tight">Upcoming cruise ship arrivals</h2>
+      <p class="mt-4 text-paper/70 text-base leading-relaxed">Roatán has two cruise piers — Isla Tropicale in Dixon Cove (Carnival &amp; Princess) and the Port of Roatán Town Center in Coxen Hole (Royal Caribbean, MSC &amp; others). Find your ship below, then message us your arrival time so we can build your excursion around it.</p>
+    </div>
+
+    <div class="mt-10 bg-paper rounded-3xl overflow-hidden shadow-card reveal">
+      <div class="overflow-x-auto no-scrollbar">
+        <table class="w-full text-sm min-w-[560px]">
+          <thead>
+            <tr class="bg-sea-deep text-paper text-left text-xs uppercase tracking-wide">
+              <th class="px-5 py-3.5 font-semibold">Date</th>
+              <th class="px-5 py-3.5 font-semibold">Ship</th>
+              <th class="px-5 py-3.5 font-semibold">Cruise Line</th>
+              <th class="px-5 py-3.5 font-semibold">Pier</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-sand-deep">
+            <tr class="hover:bg-sand/60 transition"><td class="px-5 py-3.5 font-semibold text-sea-deep whitespace-nowrap">Mon, Aug 31</td><td class="px-5 py-3.5">MSC World America</td><td class="px-5 py-3.5 text-ink/60">MSC Cruises</td><td class="px-5 py-3.5 text-ink/60">Coxen Hole</td></tr>
+            <tr class="hover:bg-sand/60 transition"><td class="px-5 py-3.5 font-semibold text-sea-deep whitespace-nowrap">Wed, Sep 2</td><td class="px-5 py-3.5">Carnival Jubilee</td><td class="px-5 py-3.5 text-ink/60">Carnival Cruise Line</td><td class="px-5 py-3.5 text-ink/60">Dixon Cove</td></tr>
+            <tr class="hover:bg-sand/60 transition"><td class="px-5 py-3.5 font-semibold text-sea-deep whitespace-nowrap">Wed, Sep 2</td><td class="px-5 py-3.5">Enchantment of the Seas</td><td class="px-5 py-3.5 text-ink/60">Royal Caribbean</td><td class="px-5 py-3.5 text-ink/60">Coxen Hole</td></tr>
+            <tr class="hover:bg-sand/60 transition"><td class="px-5 py-3.5 font-semibold text-sea-deep whitespace-nowrap">Thu, Sep 3</td><td class="px-5 py-3.5">Star of the Seas</td><td class="px-5 py-3.5 text-ink/60">Royal Caribbean</td><td class="px-5 py-3.5 text-ink/60">Coxen Hole</td></tr>
+            <tr class="hover:bg-sand/60 transition"><td class="px-5 py-3.5 font-semibold text-sea-deep whitespace-nowrap">Tue, Sep 8</td><td class="px-5 py-3.5">Icon of the Seas</td><td class="px-5 py-3.5 text-ink/60">Royal Caribbean</td><td class="px-5 py-3.5 text-ink/60">Coxen Hole</td></tr>
+            <tr class="hover:bg-sand/60 transition"><td class="px-5 py-3.5 font-semibold text-sea-deep whitespace-nowrap">Tue, Sep 8</td><td class="px-5 py-3.5">Regal Princess</td><td class="px-5 py-3.5 text-ink/60">Princess Cruises</td><td class="px-5 py-3.5 text-ink/60">Dixon Cove</td></tr>
+            <tr class="hover:bg-sand/60 transition"><td class="px-5 py-3.5 font-semibold text-sea-deep whitespace-nowrap">Wed, Sep 9</td><td class="px-5 py-3.5">Symphony of the Seas</td><td class="px-5 py-3.5 text-ink/60">Royal Caribbean</td><td class="px-5 py-3.5 text-ink/60">Coxen Hole</td></tr>
+            <tr class="hover:bg-sand/60 transition"><td class="px-5 py-3.5 font-semibold text-sea-deep whitespace-nowrap">Thu, Sep 10</td><td class="px-5 py-3.5">Carnival Celebration</td><td class="px-5 py-3.5 text-ink/60">Carnival Cruise Line</td><td class="px-5 py-3.5 text-ink/60">Dixon Cove</td></tr>
+            <tr class="hover:bg-sand/60 transition"><td class="px-5 py-3.5 font-semibold text-sea-deep whitespace-nowrap">Mon, Sep 14</td><td class="px-5 py-3.5">MSC World America</td><td class="px-5 py-3.5 text-ink/60">MSC Cruises</td><td class="px-5 py-3.5 text-ink/60">Coxen Hole</td></tr>
+            <tr class="hover:bg-sand/60 transition"><td class="px-5 py-3.5 font-semibold text-sea-deep whitespace-nowrap">Thu, Sep 17</td><td class="px-5 py-3.5">MSC Seascape</td><td class="px-5 py-3.5 text-ink/60">MSC Cruises</td><td class="px-5 py-3.5 text-ink/60">Coxen Hole</td></tr>
+            <tr class="hover:bg-sand/60 transition"><td class="px-5 py-3.5 font-semibold text-sea-deep whitespace-nowrap">Tue, Sep 22</td><td class="px-5 py-3.5">Carnival Mardi Gras</td><td class="px-5 py-3.5 text-ink/60">Carnival Cruise Line</td><td class="px-5 py-3.5 text-ink/60">Dixon Cove</td></tr>
+            <tr class="hover:bg-sand/60 transition"><td class="px-5 py-3.5 font-semibold text-sea-deep whitespace-nowrap">Thu, Sep 24</td><td class="px-5 py-3.5">Star of the Seas</td><td class="px-5 py-3.5 text-ink/60">Royal Caribbean</td><td class="px-5 py-3.5 text-ink/60">Coxen Hole</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="mt-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 reveal">
+      <p class="text-paper/50 text-xs max-w-xl leading-relaxed">Schedule reflects publicly published cruise line port calls as of late August 2026 and continues beyond what's shown here. Cruise lines change itineraries, times, and piers without notice — always confirm your ship's exact arrival with your cruise line before booking a tight-return excursion.</p>
+      <a href="https://wa.me/12072135757" target="_blank" rel="noopener" class="shrink-0 inline-flex items-center gap-2 bg-coral hover:bg-coral-dark active:scale-95 transition text-white font-semibold text-sm px-6 py-3.5 rounded-full whitespace-nowrap">
+        Message us your ship &amp; date
+      </a>
+    </div>
+  </div>
+</section>
+<footer id="footer" class="bg-ink text-sand/80 pt-16 pb-28 sm:pb-16">
+  <div class="max-w-7xl mx-auto px-5 sm:px-8">
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-10">
+
+      <div>
+        <div class="flex items-center gap-2.5">
+          <span class="grid place-items-center w-9 h-9 rounded-full bg-coral text-white">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M2 16c1.5 1.5 3 1.5 4.5 0s3-1.5 4.5 0 3 1.5 4.5 0 3-1.5 4.5 0"/><path d="M12 4v9"/><path d="M8 7l4-3 4 3"/></svg>
+          </span>
+          <span class="font-display font-semibold text-lg text-paper">Roatan Experience</span>
+        </div>
+        <p class="text-sm mt-4 leading-relaxed text-sand/60">Book premier Roatan excursions with local guides, transparent pricing, and cruise-friendly scheduling.</p>
+
+        <div class="flex gap-3 mt-5">
+          <a href="#" class="flex items-center gap-2 border border-sand/20 rounded-xl px-3.5 py-2.5 hover:border-sand/40 transition text-xs font-semibold">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M16.5 2c.1 1.2-.4 2.4-1.1 3.3-.7.9-2 1.6-3.1 1.5-.1-1.2.4-2.4 1.1-3.2.8-.9 2.1-1.5 3.1-1.6zM20 17.2c-.5 1.1-.8 1.6-1.5 2.6-1 1.4-2.3 3.1-4 3.1-1.5 0-1.9-1-3.9-1s-2.5 1-4 1c-1.7 0-3-1.5-4-2.9C.8 17.6 0 14 .8 11.5c.6-1.8 2.1-3 3.6-3 1.5 0 2.4 1 3.7 1s2.3-1 3.9-1c1.4 0 2.9.7 3.8 2-3.3 1.9-2.8 6.4.2 6.7z"/></svg>
+            App Store
+          </a>
+          <a href="#" class="flex items-center gap-2 border border-sand/20 rounded-xl px-3.5 py-2.5 hover:border-sand/40 transition text-xs font-semibold">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M3 3l11 9-11 9V3z"/><path d="M3 3l14 4-4 5-10-9z"/><path d="M3 21l14-4-4-5-10 9z"/></svg>
+            Google Play
+          </a>
+        </div>
+      </div>
+
+      <div>
+        <h4 class="text-paper font-semibold text-sm tracking-wide uppercase">Explore</h4>
+        <ul class="mt-4 space-y-2.5 text-sm">
+          <li><a href="#excursions" class="hover:text-paper transition">All Excursions</a></li>
+          <li><a href="#reviews" class="hover:text-paper transition">Traveler Reviews</a></li>
+          <li><a href="#guarantees" class="hover:text-paper transition">Our Guarantees</a></li>
+          <li><a href="#" class="hover:text-paper transition">Island Transport FAQs</a></li>
+        </ul>
+      </div>
+
+      <div>
+        <h4 class="text-paper font-semibold text-sm tracking-wide uppercase">Contact</h4>
+        <ul class="mt-4 space-y-2.5 text-sm">
+          <li><a href="mailto:Roatanexperienceapp@gmail.com" class="flex items-center gap-2 hover:text-paper transition"><svg class="shrink-0" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M2 7l10 6 10-6"/></svg> Roatanexperienceapp@gmail.com</a></li>
+          <li><a href="https://wa.me/12072135757" target="_blank" rel="noopener" class="flex items-center gap-2 hover:text-paper transition"><svg class="shrink-0" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.5 8.5 0 01-12.4 7.5L3 20l1.1-5.4A8.5 8.5 0 1121 11.5z"/><path d="M8.5 10.5c0 3 2.5 5.5 5.5 5.5"/></svg> WhatsApp: +1 207-213-5757</a></li>
+          <li class="flex items-center gap-2"><svg class="shrink-0" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg> Zelle: Roatanexperienceapp@gmail.com</li>
+          <li class="flex items-center gap-2"><svg class="shrink-0" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 6-9 12-9 12s-9-6-9-12a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg> Coxen Hole, Roatan, Honduras</li>
+        </ul>
+      </div>
+
+      <div>
+        <h4 class="text-paper font-semibold text-sm tracking-wide uppercase">Water Taxi Pickup Schedule</h4>
+        <table class="mt-4 text-sm w-full">
+          <tbody class="divide-y divide-sand/10">
+            <tr><td class="py-1.5 pr-2">Coxen Hole Dock</td><td class="py-1.5 text-right text-sand/55">7:00a – 5:00p</td></tr>
+            <tr><td class="py-1.5 pr-2">West End Point</td><td class="py-1.5 text-right text-sand/55">7:30a – 6:00p</td></tr>
+            <tr><td class="py-1.5 pr-2">West Bay Beach</td><td class="py-1.5 text-right text-sand/55">7:30a – 6:30p</td></tr>
+            <tr><td class="py-1.5 pr-2">French Harbour</td><td class="py-1.5 text-right text-sand/55">8:00a – 4:30p</td></tr>
+          </tbody>
+        </table>
+        <p class="text-xs text-sand/40 mt-2">Schedule shifts on cruise-ship days — confirm exact times in-app.</p>
+      </div>
+
+    </div>
+
+    <div class="border-t border-sand/10 mt-12 pt-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-sand/40">
+      <p>© 2026 Roatan Experience App. All rights reserved.</p>
+      <div class="flex gap-5">
+        <a href="#" class="hover:text-sand/70 transition">Privacy</a>
+        <a href="#" class="hover:text-sand/70 transition">Terms</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<!-- ============ MOBILE STICKY CTA ============ -->
+<div class="md:hidden fixed bottom-0 inset-x-0 z-30 bg-paper/95 backdrop-blur border-t border-sand-deep px-4 py-3 flex items-center gap-3 shadow-[0_-8px_24px_-12px_rgba(0,0,0,0.15)]">
+  <a href="https://wa.me/12072135757" target="_blank" rel="noopener" class="grid place-items-center w-12 h-12 rounded-full bg-[#25D366] text-white shrink-0" aria-label="Chat with us on WhatsApp">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.5 8.5 0 01-12.4 7.5L3 20l1.1-5.4A8.5 8.5 0 1121 11.5z"/><path d="M8.5 10.5c0 3 2.5 5.5 5.5 5.5"/></svg>
+  </a>
+  <button onclick="openBookingModal()" class="flex-1 bg-coral text-white font-semibold text-sm py-3.5 rounded-full">Book an Excursion</button>
+</div>
+
+<!-- ============ BOOKING MODAL ============ -->
+<div id="bookingBackdrop" class="fixed inset-0 bg-ink/50 z-50 hidden items-center justify-center p-0 sm:p-6" onclick="if(event.target===this) closeBookingModal()">
+  <div class="bg-paper w-full sm:max-w-lg sm:rounded-3xl rounded-t-3xl max-h-[92vh] overflow-y-auto absolute bottom-0 sm:relative sm:bottom-auto shadow-2xl">
+
+    <!-- Booking form view -->
+    <div id="bookingFormView">
+      <div class="flex items-center justify-between px-6 pt-6 pb-2 sticky top-0 bg-paper z-10">
+        <h3 class="font-display font-semibold text-2xl text-sea-deep">Reserve your spot</h3>
+        <button onclick="closeBookingModal()" aria-label="Close" class="w-9 h-9 rounded-full grid place-items-center bg-sand hover:bg-sand-deep transition">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+        </button>
+      </div>
+      <p class="px-6 text-sm text-ink/60">Tell us the trip and dates — our island team confirms availability within a few hours.</p>
+
+      <form id="bookingForm" class="px-6 pt-5 pb-6 space-y-4" onsubmit="submitBooking(event)">
+        <div>
+          <label class="block text-xs font-semibold text-ink/60 uppercase tracking-wide mb-1.5">Excursion</label>
+          <select id="excursionSelect" required class="w-full border border-sand-deep bg-white rounded-xl px-4 py-3 text-sm outline-none focus:border-sea-bright focus:ring-2 focus:ring-sea-bright/30">
+            <option value="">Select an excursion…</option>
+          </select>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-ink/60 uppercase tracking-wide mb-1.5">Date</label>
+            <input id="bookingDate" type="date" required class="w-full border border-sand-deep bg-white rounded-xl px-4 py-3 text-sm outline-none focus:border-sea-bright focus:ring-2 focus:ring-sea-bright/30">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-ink/60 uppercase tracking-wide mb-1.5">Guests</label>
+            <div class="flex items-center border border-sand-deep bg-white rounded-xl px-2 py-1.5 justify-between">
+              <button type="button" onclick="stepGuests(-1)" class="stepper-btn grid place-items-center rounded-lg hover:bg-sand text-lg font-bold text-sea-deep">−</button>
+              <input id="guestCount" type="text" readonly value="2" class="w-8 text-center text-sm font-semibold bg-transparent">
+              <button type="button" onclick="stepGuests(1)" class="stepper-btn grid place-items-center rounded-lg hover:bg-sand text-lg font-bold text-sea-deep">+</button>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-ink/60 uppercase tracking-wide mb-1.5">Full name</label>
+          <input type="text" required placeholder="Jamie Rivera" class="w-full border border-sand-deep bg-white rounded-xl px-4 py-3 text-sm outline-none focus:border-sea-bright focus:ring-2 focus:ring-sea-bright/30">
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-ink/60 uppercase tracking-wide mb-1.5">Email</label>
+            <input type="email" required placeholder="you@email.com" class="w-full border border-sand-deep bg-white rounded-xl px-4 py-3 text-sm outline-none focus:border-sea-bright focus:ring-2 focus:ring-sea-bright/30">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-ink/60 uppercase tracking-wide mb-1.5">Phone / WhatsApp</label>
+            <input type="tel" placeholder="+1 555 123 4567" class="w-full border border-sand-deep bg-white rounded-xl px-4 py-3 text-sm outline-none focus:border-sea-bright focus:ring-2 focus:ring-sea-bright/30">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-ink/60 uppercase tracking-wide mb-1.5">Notes <span class="normal-case font-normal text-ink/40">(optional — cruise ship, hotel, special requests)</span></label>
+          <textarea rows="2" placeholder="e.g. Docked on Carnival Vista, back by 3pm" class="w-full border border-sand-deep bg-white rounded-xl px-4 py-3 text-sm outline-none focus:border-sea-bright focus:ring-2 focus:ring-sea-bright/30 resize-none"></textarea>
+        </div>
+
+        <button id="bookingSubmitBtn" type="submit" class="w-full bg-coral hover:bg-coral-dark active:scale-[0.98] transition text-white font-semibold text-base py-4 rounded-full shadow-ticket flex items-center justify-center gap-2">
+          Send Booking Request
+        </button>
+        <p class="text-[11px] text-ink/40 text-center">No payment is taken now — this sends an inquiry to our island team.</p>
+        <p class="text-[11px] text-ink/40 text-center mt-1">We accept Zelle at <span class="font-semibold text-ink/60">Roatanexperienceapp@gmail.com</span>, or email/WhatsApp us directly using the details at the top of this page.</p>
+      </form>
+    </div>
+
+    <!-- Success view -->
+    <div id="bookingSuccessView" class="hidden px-6 py-14 text-center">
+      <div class="w-16 h-16 rounded-full bg-sea-pale grid place-items-center mx-auto text-sea-deep">
+        <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+      </div>
+      <h3 class="font-display font-semibold text-2xl text-sea-deep mt-5">Request received!</h3>
+      <p class="text-ink/60 text-sm mt-2 max-w-xs mx-auto">Our island team will confirm your spot by email or WhatsApp, usually within a few hours.</p>
+      <button onclick="closeBookingModal()" class="mt-8 bg-sea-deep text-white font-semibold text-sm px-6 py-3 rounded-full">Done</button>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  /* ---------- Reveal on scroll ---------- */
+  const revealEls = document.querySelectorAll('.reveal');
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
+  }, { threshold: 0.12 });
+  revealEls.forEach(el => io.observe(el));
+
+  /* ---------- Excursion catalog data ---------- */
+  /* ---------- Self-contained thumbnail illustrations (no network dependency) ---------- */
+  const ICONS = {
+    shipwreck: '<path d="M2 17l2-6h14l2 6"/><path d="M8 11V5l2-2h2l2 2v6"/><path d="M2 17c1.5 2 3 2 4.5 0s3-2 4.5 0 3 2 4.5 0 3-2 4.5 0"/><circle cx="17" cy="6" r="0.8" fill="currentColor" stroke="none"/><circle cx="19" cy="9" r="0.6" fill="currentColor" stroke="none"/>',
+    coral: '<path d="M12 20v-9"/><path d="M12 11c-3.2 0-5.2-2.1-5.2-5.3"/><path d="M12 11c3.2 0 5.2-2.1 5.2-5.3"/><path d="M12 15c-2.6 0-4.3-1.6-4.3-4.2"/><path d="M12 15c2.6 0 4.3-1.6 4.3-4.2"/>',
+    shark: '<path d="M2 15.5c4-6.5 14-6.5 18-1-3 2.8-6 3.7-8 3.7-3 5.3-10 5.3-10 5.3s2-3.5 1-5.4c-1-1-1-1.7-1-2.6z"/><circle cx="15" cy="13" r="0.6" fill="currentColor" stroke="none"/>',
+    mangrove: '<path d="M12 3v7"/><path d="M12 10l-4.5 4M12 10l4.5 4"/><path d="M7.5 14L4 21M16.5 14L20 21"/><path d="M12 10v11"/>',
+    waterbike: '<circle cx="6" cy="17.5" r="2"/><circle cx="18" cy="17.5" r="2"/><path d="M6 17.5h5.5l2.8-6H18M11.5 17.5l2.8-6"/><ellipse cx="6" cy="20.5" rx="3.4" ry="1"/><ellipse cx="18" cy="20.5" rx="3.4" ry="1"/>',
+    jetski: '<path d="M2.5 16c3-4.3 8.3-6 13.7-4 2.7 1 4.4 2.7 5.3 3.8-2 1-4.8 1-7.6 0-3.6-1.3-8.4.6-11.4 0.2z"/><path d="M3 20c1.4 1 2.8 1 4.2 0"/>',
+    parasail: '<path d="M4 8.5a8 4.2 0 0116 0"/><path d="M4 8.5l4.2 8.2M20 8.5l-4.2 8.2M9.4 8.5l0.8 8.2M14.6 8.5l-0.8 8.2"/><path d="M9 16.7h6l1.6 3.3H7.4z"/>',
+    glassboat: '<path d="M3 16.5l2-5.5h14l2 5.5"/><circle cx="12" cy="13.2" r="2.1"/><path d="M2.5 19.5c1.5 1.6 3 1.6 4.5 0s3-1.6 4.5 0 3 1.6 4.5 0 3-1.6 4.5 0"/>',
+    dolphin: '<path d="M4 14c4-6 12-6 16-1-2 3-5 4-7 4-3 5-9 5-9 5s2-3 1-5c-1-1-1-2-1-3z"/><circle cx="15" cy="11" r="0.7" fill="currentColor" stroke="none"/>',
+    catamaran: '<path d="M3 17.5l1.2-3.5h4l1.2 3.5M14.6 17.5l1.2-3.5h4l1.2 3.5"/><path d="M12 3v11.5M12 5.5l5.5 3-5.5 2.2"/>',
+    islands: '<path d="M2 18.5c4-2.2 5 1.8 8 0s4 1.8 8 0s3 1.8 4 0"/><circle cx="6" cy="13" r="2.1"/><circle cx="13.5" cy="10.8" r="2.6"/><circle cx="19.5" cy="14" r="1.5"/>',
+    map: '<path d="M3 6l6-2 6 2 6-2v14l-6 2-6-2-6 2z"/><path d="M9 4v14M15 6v14"/><circle cx="10.5" cy="10.5" r="1.6"/>',
+    buggy: '<circle cx="6" cy="17.3" r="2.3"/><circle cx="18" cy="17.3" r="2.3"/><path d="M3.7 17.3h1M19.3 17.3h1M6 15V9h9l3.2 6"/><path d="M9.5 9V6h3v3"/>',
+    atv: '<circle cx="6" cy="17.5" r="2.1"/><circle cx="18" cy="17.5" r="2.1"/><path d="M6 17.5h4.2l1.8-6h4l2 6"/><path d="M12 11.5V7.5"/><path d="M9 6.5h4"/>',
+    horse: '<path d="M4.5 19.5l1.7-6c-.2-3.3 2-5.5 5-5.5h1.6c2 0 3.1 1 4 2.8l2 1.8-2 1-1-1v7"/><path d="M6.5 13.5v6M16.8 15.3v4.2"/><path d="M9 8.3l1.4-2"/>',
+    zipline: '<path d="M2 6l20 12.5"/><circle cx="12.2" cy="11.3" r="1.6"/><path d="M12.2 12.9v3.6"/><path d="M9.3 20h6"/>',
+    "zipline-ocean": '<path d="M2 6.5l14.5 8.2"/><circle cx="9.3" cy="9.9" r="1.4"/><path d="M2 19c3-2.2 5 2.2 8 0s5 2.2 8 0s3-2.2 4 0"/>',
+    monkey: '<path d="M4.5 20c-.3-6 3.7-6.3 3.9-9.8a3.6 3.6 0 017.2 0c.2 3.5 4.2 3.8 3.9 9.8"/><circle cx="12" cy="9.8" r="3.3"/><circle cx="9.6" cy="9.3" r="0.5" fill="currentColor" stroke="none"/><circle cx="14.4" cy="9.3" r="0.5" fill="currentColor" stroke="none"/>',
+    sloth: '<path d="M3 5.5h18"/><path d="M8.5 5.5v3.2a3.5 3.5 0 007 0V5.5"/><path d="M9.7 8.7v2.6a2.3 2.3 0 004.6 0V8.7"/><circle cx="12" cy="14.5" r="3.3"/><circle cx="10.8" cy="14" r="0.4" fill="currentColor" stroke="none"/><circle cx="13.2" cy="14" r="0.4" fill="currentColor" stroke="none"/>',
+    bird: '<path d="M3.5 14.5c2.3-4.3 6.6-6.3 10.8-5 3 .9 4.8 3 5.7 4.6-2.2 1.1-4.6 1.1-6.8.4" /><path d="M8 9.3c-1.1-2-.9-4 .9-5.3" /><circle cx="15.8" cy="11.2" r="0.7" fill="currentColor" stroke="none"/><path d="M14 15.5l-2 4M10.5 14.8l-2.5 4.4"/>'
+  };
+
+  function sceneSVG(icon, c1, c2, title) {
+    const grad = 'g' + Math.random().toString(36).slice(2, 9);
+    const iconPath = ICONS[icon] || ICONS.islands;
+    return `
+      <svg viewBox="0 0 400 240" preserveAspectRatio="xMidYMid slice" class="absolute inset-0 w-full h-full" xmlns="http://www.w3.org/2000/svg" role="img">
+        <title>${title}</title>
+        <defs>
+          <linearGradient id="${grad}" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="${c1}"/>
+            <stop offset="100%" stop-color="${c2}"/>
+          </linearGradient>
+        </defs>
+        <rect width="400" height="240" fill="url(#${grad})"/>
+        <circle cx="40" cy="200" r="90" fill="white" opacity="0.05"/>
+        <circle cx="370" cy="30" r="70" fill="white" opacity="0.06"/>
+        <g transform="translate(150,60) scale(4.2)" fill="none" stroke="white" stroke-width="0.9" stroke-linecap="round" stroke-linejoin="round" opacity="0.92">${iconPath}</g>
+      </svg>`;
+  }
+
+  const EXCURSIONS = [
+    // ---------- WATER & REEF ----------
+    {
+      title: "The Snigg Shipwreck Tour",
+      tagline: "Descend into Roatan's sunken history",
+      desc: "Drift along the hull of a deliberately sunk cargo ship, now an artificial reef teeming with grouper, eels, and soft coral. A certified guide leads every pass, pointing out swim-throughs safe for your certification level.",
+      duration: "2.5 hrs",
+      price: "$85/person",
+      badge: "Diver Favorite",
+      category: "water",
+      reviews: 143,
+      icon: "shipwreck",
+      c1: "#0A3F3B",
+      c2: "#12786D",
+      alt: "Diver exploring a sunken shipwreck in clear blue water",
+      highlights: ["Guided pass over a real sunken shipwreck", "Artificial reef marine life", "Beginner and certified-diver routes", "Underwater photos included"],
+      included: ["Certified dive/snorkel guide", "Full snorkel or scuba gear", "Roundtrip boat transport", "Bottled water & fruit"],
+      bring: ["Swimsuit & towel", "Reef-safe sunscreen", "Underwater camera (optional)", "Dive certification card, if diving"]
+    },
+    {
+      title: "The Secret Underwater Garden",
+      tagline: "A hidden reef only the locals know",
+      desc: "Tucked away from the main dive routes, this pristine coral garden is bright with staghorn and brain coral rarely touched by boat traffic. Small groups keep the reef undisturbed and the visibility exceptional.",
+      duration: "2 hrs",
+      price: "$89/person",
+      badge: "Hidden Gem",
+      category: "water",
+      reviews: 87,
+      icon: "coral",
+      c1: "#12786D",
+      c2: "#1FAF9E",
+      alt: "Vibrant, colorful coral reef formations underwater",
+      highlights: ["Untouched, low-traffic coral formations", "Small groups, max 6 snorkelers", "Calm, shallow-water site", "Marine-guide commentary"],
+      included: ["Snorkel gear & flotation vest", "Marine-guide narration", "Roundtrip boat transport", "Fresh fruit snack"],
+      bring: ["Swimsuit", "Reef-safe sunscreen", "Change of clothes"]
+    },
+    {
+      title: "Pigeon Key Swim with Nurse Sharks",
+      tagline: "Swim alongside the ocean's gentlest giants",
+      desc: "Wade into calm, waist-deep water at Pigeon Key to swim beside docile nurse sharks that have gathered here for generations. Guides handle every entry so you can focus on getting close, safely.",
+      duration: "1.5 hrs",
+      price: "$180/person",
+      badge: "Family Favorite",
+      category: "water",
+      reviews: 201,
+      icon: "shark",
+      c1: "#0A3F3B",
+      c2: "#1FAF9E",
+      alt: "Shark swimming in shallow, crystal-clear tropical water",
+      highlights: ["Shallow-water shark swim", "No diving experience required", "Marine safety briefing included", "Photo ops guaranteed"],
+      included: ["Marine safety guide", "Snorkel mask & vest", "Roundtrip water taxi", "Rinse-off station access"],
+      bring: ["Swimsuit", "Water shoes", "Waterproof phone case for photos"]
+    },
+    {
+      title: "East End Mangrove Tour",
+      tagline: "Glide through Roatan's quiet green veins",
+      desc: "Wind a small skiff through narrow mangrove canals on the island's untouched east end, spotting herons, iguanas, and juvenile fish nurseries along the way — the calmest hour on the island.",
+      duration: "1.5 hrs",
+      price: "$65/person",
+      badge: "Nature Favorite",
+      category: "water",
+      reviews: 64,
+      icon: "mangrove",
+      c1: "#0A3F3B",
+      c2: "#12786D",
+      alt: "Small boat navigating a shaded mangrove forest canal",
+      highlights: ["Shaded mangrove canal navigation", "Birdwatching & wildlife spotting", "Local naturalist guide", "Calm water, all ages welcome"],
+      included: ["Small-boat naturalist guide", "Binoculars for wildlife spotting", "Roundtrip transport", "Bottled water"],
+      bring: ["Insect repellent", "Hat & sunglasses", "Light rain jacket (seasonal)"]
+    },
+    {
+      title: "Water Bikes",
+      tagline: "Pedal across the surface of the sea",
+      desc: "Hop aboard a stable, pontoon-style water bike and pedal yourself across calm turquoise shallows at your own pace — an easy, breezy way to explore the coastline with zero experience required.",
+      duration: "1 hr",
+      price: "$35/person",
+      badge: "Easy & Fun",
+      category: "water",
+      reviews: 42,
+      icon: "waterbike",
+      c1: "#1FAF9E",
+      c2: "#12786D",
+      alt: "Watercraft gliding across turquoise shallow water near the shore",
+      highlights: ["Stable, easy-to-ride pontoon bikes", "Self-guided coastal route", "No experience necessary", "Great for couples & families"],
+      included: ["Water bike rental", "Life vest", "Quick safety orientation", "Beach launch access"],
+      bring: ["Swimsuit", "Sunscreen", "Water shoes"]
+    },
+    {
+      title: "Jet Ski Rentals & Tours",
+      tagline: "Full-throttle across the Caribbean",
+      desc: "Rent a jet ski solo or join a guided coastal tour that runs the shoreline from West Bay toward hidden coves. Guides set the pace so first-timers and thrill-seekers can ride together.",
+      duration: "1 hr",
+      price: "$89/person",
+      badge: "High Speed",
+      category: "water",
+      reviews: 118,
+      icon: "jetski",
+      c1: "#12786D",
+      c2: "#E5543F",
+      alt: "Person riding a jet ski across open water",
+      highlights: ["Solo rental or guided tour option", "Coastal cove exploration", "Beginner-friendly instruction", "Single or double-rider skis"],
+      included: ["Jet ski rental", "Life jacket & safety briefing", "Guide (tour option)", "Fuel included"],
+      bring: ["Swimsuit", "Sunglasses with strap", "Towel"]
+    },
+    {
+      title: "Parasailing",
+      tagline: "Soar high above West Bay",
+      desc: "Lift off the back of the boat and rise above West Bay for a bird's-eye view of the reef, the coastline, and the island's western tip. Single, tandem, and triple-rider flights available.",
+      duration: "45 min",
+      price: "$75/person",
+      badge: "Best View",
+      category: "water",
+      reviews: 176,
+      icon: "parasail",
+      c1: "#1FAF9E",
+      c2: "#E5543F",
+      alt: "Person parasailing high above the ocean behind a boat",
+      highlights: ["360-degree aerial island views", "Single, tandem & triple flights", "Dry takeoff and landing", "No experience needed"],
+      included: ["Certified parasail crew", "Harness & safety gear", "Roundtrip boat transport", "GoPro footage add-on available"],
+      bring: ["Secure footwear", "Sunglasses with strap", "Light jacket for the breeze"]
+    },
+    {
+      title: "Glass Bottom Boat Tour",
+      tagline: "See the reef without getting wet",
+      desc: "Watch coral formations and tropical fish drift beneath your feet through the boat's reinforced glass floor — the most relaxed way to experience the reef, ideal for non-swimmers and young kids.",
+      duration: "1 hr",
+      price: "$39/person",
+      badge: "All Ages",
+      category: "water",
+      reviews: 95,
+      icon: "glassboat",
+      c1: "#0A3F3B",
+      c2: "#1FAF9E",
+      alt: "Colorful coral formations visible through clear water",
+      highlights: ["Dry, clear-view reef observation", "Ideal for all ages & abilities", "Comfortable, shaded seating", "Narrated marine life commentary"],
+      included: ["Glass-bottom boat & captain", "Marine life narration", "Roundtrip transport", "Bottled water"],
+      bring: ["Sun hat", "Camera", "Light layer for the breeze"]
+    },
+    {
+      title: "Dolphin Excursion",
+      tagline: "Meet Roatan's resident pod up close",
+      desc: "Spend the morning with a trained pod of bottlenose dolphins — swim, touch, and interact under the guidance of certified marine handlers, then cool off with an optional reef snorkel next door.",
+      duration: "3 hrs",
+      price: "$99/person",
+      badge: "Most Popular",
+      category: "water",
+      reviews: 356,
+      icon: "dolphin",
+      c1: "#0A3F3B",
+      c2: "#12786D",
+      alt: "Dolphins swimming together in open blue ocean water",
+      highlights: ["Interactive dolphin encounter", "Optional reef snorkel add-on", "Certified marine mammal handlers", "Photo package available"],
+      included: ["Marine handler-led encounter", "Snorkel gear (if add-on selected)", "Roundtrip transport", "Rinse-off facilities"],
+      bring: ["Swimsuit", "Towel", "Reef-safe sunscreen"]
+    },
+    {
+      title: "Catamaran Cruises",
+      tagline: "Sail, sip, and watch the sun go down",
+      desc: "Settle onto a wide, stable catamaran deck for an afternoon of sailing, an open bar, and a reef snorkel stop, timed to finish with the island's best sunset views over open water.",
+      duration: "4 hrs",
+      price: "$85/person",
+      badge: "Sunset Favorite",
+      category: "water",
+      reviews: 208,
+      icon: "catamaran",
+      c1: "#E5543F",
+      c2: "#FF6F5C",
+      alt: "Sailboat on the ocean at sunset",
+      highlights: ["Open bar included", "Sunset sailing views", "Reef snorkel stop", "Spacious deck & lounging"],
+      included: ["Licensed sailing crew", "Open bar (beer, rum punch, soft drinks)", "Snorkel gear", "Light snacks"],
+      bring: ["Swimsuit", "Sunscreen", "Light cover-up for the evening breeze"]
+    },
+    {
+      title: "Island Hopping",
+      tagline: "Collect a whole trip's worth of beaches in one day",
+      desc: "Chase the horizon between three of Roatan's quietest cays, each stop swapped for a new stretch of sand, a new reef edge, and a new reason to jump back in the water.",
+      duration: "5 hrs",
+      price: "$95/person",
+      badge: "Full-Day Adventure",
+      category: "water",
+      reviews: 129,
+      icon: "islands",
+      c1: "#12786D",
+      c2: "#1FAF9E",
+      alt: "Small tropical island surrounded by turquoise water and boats",
+      highlights: ["Three-stop cay circuit", "Fresh beach & reef at every stop", "Small-group boat", "Lunch on a private beach"],
+      included: ["Captain & guide", "Snorkel gear", "Beach lunch", "Cooler with drinks"],
+      bring: ["Swimsuit", "Reef-safe sunscreen", "Dry bag for valuables"]
+    },
+
+    // ---------- MOTOR & ADVENTURE ----------
+    {
+      title: "Comprehensive Island Tour",
+      tagline: "Roatan's story, told stop by stop",
+      desc: "Ride in an open-air van through Coxen Hole, French Harbour, and the hills above West End, stopping at historic sites, an iguana farm, and a panoramic overlook of the whole island.",
+      duration: "4 hrs",
+      price: "$59/person",
+      badge: "Best Overview",
+      category: "motor",
+      reviews: 133,
+      icon: "map",
+      c1: "#CDB48A",
+      c2: "#E5543F",
+      alt: "Aerial view of a tropical island surrounded by ocean",
+      highlights: ["Historic & cultural stop-offs", "Panoramic island overlook", "Local guide storytelling", "Photo stops at every viewpoint"],
+      included: ["Licensed tour guide & driver", "Air-conditioned van", "Entrance fees at stops", "Bottled water"],
+      bring: ["Comfortable walking shoes", "Camera", "Cash for local vendors"]
+    },
+    {
+      title: "Dune Buggies",
+      tagline: "Take the wheel off the beaten path",
+      desc: "Drive your own two-seat buggy through jungle backroads and coastal dirt trails most tour buses never reach, following a lead guide who knows every rut, hill, and swimming hole en route.",
+      duration: "2.5 hrs",
+      price: "$89/buggy (2 people)",
+      badge: "Off-Road Favorite",
+      category: "motor",
+      reviews: 76,
+      icon: "buggy",
+      c1: "#CDB48A",
+      c2: "#FF6F5C",
+      alt: "Off-road dune buggy vehicle built for rugged terrain",
+      highlights: ["Self-drive off-road buggies", "Jungle & coastal trail mix", "Swimming hole stop", "Guided convoy format"],
+      included: ["Buggy rental & fuel", "Helmet & safety briefing", "Lead guide", "Bottled water"],
+      bring: ["Closed-toe shoes", "Sunglasses", "Change of clothes (trails get muddy)"]
+    },
+    {
+      title: "ATV Adventure",
+      tagline: "Rougher trails, bigger grins",
+      desc: "Point a rugged single-rider ATV up steep jungle inclines and across rocky creek beds on a route built for riders who want more mud and more incline than the buggy trail offers.",
+      duration: "2 hrs",
+      price: "$69/person",
+      badge: "Adrenaline Pick",
+      category: "motor",
+      reviews: 58,
+      icon: "atv",
+      c1: "#E5543F",
+      c2: "#FF6F5C",
+      alt: "ATV rider on a dirt trail",
+      highlights: ["Single-rider rugged terrain course", "Steep inclines & creek crossings", "Beginner instruction included", "Small guided groups"],
+      included: ["ATV rental & fuel", "Helmet & gloves", "Trail guide", "Safety briefing"],
+      bring: ["Closed-toe shoes", "Bandana or buff for dust", "Change of clothes"]
+    },
+    {
+      title: "Horseback Riding",
+      tagline: "Ride the shoreline at an easy island pace",
+      desc: "Follow a guide on horseback along a quiet stretch of beach and jungle trail, wading through the shallows as the horses walk right up to the waterline. No riding experience needed — horses are calm and matched to your comfort level.",
+      duration: "1.5 hrs",
+      price: "$65/person",
+      badge: "Easy Going",
+      category: "motor",
+      reviews: 51,
+      icon: "horse",
+      c1: "#CDB48A",
+      c2: "#E5543F",
+      alt: "Two riders on horseback along a tropical beach",
+      highlights: ["Beach & jungle trail ride", "Horses walk through the shallows", "No experience necessary", "Small guided groups"],
+      included: ["Horse & tack", "Guide for the full ride", "Helmet (on request)", "Bottled water"],
+      bring: ["Closed-toe shoes or sandals with a back strap", "Sunscreen", "Swimsuit if riding through the shallows"]
+    },
+
+    // ---------- ZIP LINES HUB ----------
+    {
+      title: "Family Canopy Zipline Circuit",
+      tagline: "Roatan's original treetop run, built for every age",
+      desc: "Eight lines wind gently through the jungle canopy at a pace built for first-timers and kids as young as six. Platforms are wide, guides double-check every harness, and the views rival the fast lines.",
+      duration: "2 hrs",
+      price: "$65/person",
+      badge: "Family Friendly",
+      category: "zipline",
+      reviews: 214,
+      icon: "zipline",
+      c1: "#0A3F3B",
+      c2: "#CDB48A",
+      alt: "Person riding a zipline through a lush green forest canopy",
+      highlights: ["8 beginner-friendly lines", "Minimum age 6", "Jungle canopy views", "Certified guide on every platform"],
+      included: ["Full harness & helmet", "Certified zip guides", "Roundtrip transport", "Bottled water"],
+      bring: ["Closed-toe shoes (required)", "Hair tie for long hair", "Sunscreen"],
+      stats: [{ label: "Top Speed", value: "25 mph" }, { label: "Max Height", value: "150 ft" }, { label: "Lines", value: "8" }]
+    },
+    {
+      title: "Extreme Ridge Zipline Course",
+      tagline: "Roatan's fastest, highest run",
+      desc: "Fourteen lines push higher and faster than anywhere else on the island, including a superman-style line that clears 600 feet at the ridge's peak — built for riders who want more than a first canopy tour.",
+      duration: "2.5 hrs",
+      price: "$95/person",
+      badge: "Extreme",
+      category: "zipline",
+      reviews: 167,
+      icon: "zipline",
+      c1: "#12786D",
+      c2: "#E5543F",
+      alt: "Person riding a zipline at speed through a forest",
+      highlights: ["14 high-speed lines", "600 ft peak line height", "Superman & tandem line options", "Recommended for experienced riders"],
+      included: ["Full harness & helmet", "Certified zip guides", "Roundtrip transport", "GoPro footage add-on available"],
+      bring: ["Closed-toe shoes (required)", "Hair tie for long hair", "Light jacket for ridge wind"],
+      stats: [{ label: "Top Speed", value: "45 mph" }, { label: "Max Height", value: "600 ft" }, { label: "Lines", value: "14" }]
+    },
+    {
+      title: "Ocean View Coastal Zipline",
+      tagline: "Fly the coastline, not just the jungle",
+      desc: "Ten lines trace the ridge above the island's north shore, alternating jungle canopy with wide-open runs where the reef and open ocean stretch out below — the only course built around the water view.",
+      duration: "2 hrs",
+      price: "$79/person",
+      badge: "Best Views",
+      category: "zipline",
+      reviews: 98,
+      icon: "zipline-ocean",
+      c1: "#0A3F3B",
+      c2: "#1FAF9E",
+      alt: "Aerial view of a tropical coastline with clear blue water, the scenery this zipline soars above",
+      highlights: ["10 coastline-facing lines", "Reef & open-ocean views", "Mix of jungle and open runs", "Sunset departure available"],
+      included: ["Full harness & helmet", "Certified zip guides", "Roundtrip transport", "Bottled water"],
+      bring: ["Closed-toe shoes (required)", "Camera or GoPro mount", "Sunscreen"],
+      stats: [{ label: "Top Speed", value: "35 mph" }, { label: "Max Height", value: "400 ft" }, { label: "Lines", value: "10" }]
+    },
+
+    // ---------- ANIMAL PARKS HUB ----------
+    {
+      title: "Monkey & Wildlife Rescue Sanctuary",
+      tagline: "Meet Roatan's rescued troop up close",
+      desc: "Walk shaded jungle paths through a rescue sanctuary home to capuchin and spider monkeys, most rehabilitated from the illegal pet trade. Keepers lead every interaction so animals stay comfortable and visitors stay safe.",
+      duration: "1.5 hrs",
+      price: "$45/person",
+      badge: "Rescue Sanctuary",
+      category: "park",
+      reviews: 122,
+      icon: "monkey",
+      c1: "#0A3F3B",
+      c2: "#12786D",
+      alt: "Capuchin monkey perched on a tree branch",
+      highlights: ["Capuchin & spider monkey encounters", "Keeper-led interactions", "Rescue & rehabilitation stories", "Jungle boardwalk included"],
+      included: ["Park entry & keeper guide", "Roundtrip transport", "Hand sanitizing stations", "Bottled water"],
+      bring: ["Closed-toe shoes", "Insect repellent", "Camera"],
+      stats: [{ label: "Species", value: "4" }, { label: "Format", value: "Boardwalk" }, { label: "Visit", value: "90 min" }]
+    },
+    {
+      title: "Sloth Encounter & Botanical Garden",
+      tagline: "Slow down at the island's gentlest stop",
+      desc: "Hold and photograph a rescued sloth at an unhurried pace, then wander a botanical garden planted with native orchids, bromeliads, and fruit trees identified along a self-guided path.",
+      duration: "1 hr",
+      price: "$49/person",
+      badge: "Gentle & Slow",
+      category: "park",
+      reviews: 89,
+      icon: "sloth",
+      c1: "#12786D",
+      c2: "#CDB48A",
+      alt: "Three-toed sloth hanging from a branch surrounded by lush green foliage",
+      highlights: ["Hands-on sloth encounter", "Native botanical garden walk", "Photo opportunities included", "Calm, slow-paced format"],
+      included: ["Guided sloth encounter", "Botanical garden entry", "Roundtrip transport", "Bottled water"],
+      bring: ["Comfortable shoes", "Camera", "Sun hat"],
+      stats: [{ label: "Species", value: "Two-toed sloth" }, { label: "Format", value: "Hands-on" }, { label: "Visit", value: "60 min" }]
+    },
+    {
+      title: "Tropical Bird Aviary & Botanical Gardens",
+      tagline: "Walk beneath macaws, toucans, and orchids",
+      desc: "Step into a walk-through aviary where scarlet macaws and toucans perch at eye level, then continue through botanical grounds landscaped with tropical flora native to the Bay Islands.",
+      duration: "1.5 hrs",
+      price: "$42/person",
+      badge: "Bird Favorite",
+      category: "park",
+      reviews: 71,
+      icon: "bird",
+      c1: "#E5543F",
+      c2: "#1FAF9E",
+      alt: "Colorful scarlet macaw perched on a tree branch",
+      highlights: ["Walk-through bird aviary", "Macaw & toucan encounters", "Botanical garden grounds", "Self-guided or led tour options"],
+      included: ["Park entry", "Guide (led-tour option)", "Roundtrip transport", "Bottled water"],
+      bring: ["Comfortable shoes", "Camera", "Sun hat"],
+      stats: [{ label: "Species", value: "20+ birds" }, { label: "Format", value: "Walk-through aviary" }, { label: "Visit", value: "90 min" }]
+    }
+  ];
+
+  const HUB_INFO = {
+    zipline: {
+      title: "Roatan Zip Lines Portal",
+      desc: "Every canopy tour on the island, grouped in one place — compare top speed, platform height, and line count to find the run that matches your nerve."
+    },
+    park: {
+      title: "Roatan Parks & Monkeys Portal",
+      desc: "Every wildlife sanctuary and nature park on the island — monkeys, sloths, aviaries, and botanical walks, grouped so you can compare formats at a glance."
+    }
+  };
+
+  /* ---------- Filtering + search + rendering ---------- */
+  let currentFilter = 'all';
+
+  function setFilter(cat, fromHero = false) {
+    currentFilter = cat;
+    document.querySelectorAll('[data-filter]').forEach(btn => {
+      btn.setAttribute('data-active', btn.dataset.filter === cat ? 'true' : 'false');
+    });
+    render();
+    if (fromHero) {
+      document.getElementById('excursions').scrollIntoView({ behavior: 'smooth' });
+    }
+  }
+
+  function filterCards() { render(); }
+
+  function cardTemplate(item, idx) {
+    const statsRow = item.stats ? `
+      <div class="flex flex-wrap gap-2 px-6 -mt-1 mb-1">
+        ${item.stats.map(s => `<span class="inline-flex items-center gap-1.5 bg-sea-pale text-sea-deep text-[11px] font-bold px-3 py-1.5 rounded-full">${s.label}: ${s.value}</span>`).join('')}
+      </div>` : '';
+
+    const listBlock = (label, items) => `
+      <div>
+        <p class="text-[11px] font-bold uppercase tracking-wide text-ink/40 mb-1.5">${label}</p>
+        <ul class="space-y-1">
+          ${items.map(i => `<li class="flex items-start gap-2 text-sm text-ink/70"><svg class="mt-0.5 shrink-0" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color:#1FAF9E"><path d="M20 6L9 17l-5-5"/></svg>${i}</li>`).join('')}
+        </ul>
+      </div>`;
+
+    return `
+      <article class="excursion-card" data-idx="${idx}" data-category="${item.category}" data-title="${item.title.toLowerCase()}" data-desc="${item.desc.toLowerCase()}">
+        <div class="bg-paper rounded-[1.75rem] overflow-hidden shadow-card card-lift relative h-full flex flex-col">
+          <div class="relative h-48">
+            ${sceneSVG(item.icon, item.c1, item.c2, item.alt)}
+            <div class="absolute inset-0 bg-gradient-to-t from-black/25 to-transparent"></div>
+            <span class="absolute top-4 left-4 bg-coral text-white text-xs font-bold px-3 py-1.5 rounded-full shadow">${item.badge}</span>
+          </div>
+          <div class="p-6 pb-3 flex-1 flex flex-col">
+            <div class="flex items-center gap-1.5 text-coral text-sm font-semibold">
+              <span>★★★★★</span><span class="text-ink/50 font-medium">5.0 (${item.reviews})</span>
+            </div>
+            <h3 class="font-display font-semibold text-xl mt-2 text-sea-deep">${item.title}</h3>
+            <p class="text-sea/80 text-xs font-semibold mt-1">${item.tagline}</p>
+            <p class="text-ink/65 text-sm mt-2 leading-relaxed">${item.desc}</p>
+            <div class="flex items-center gap-4 mt-4 text-xs text-ink/55 font-medium">
+              <span class="flex items-center gap-1.5"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>${item.duration}</span>
+            </div>
+          </div>
+          ${statsRow}
+          <div class="px-6 pb-3">
+            <button type="button" data-action="toggle-details" class="flex items-center gap-1.5 text-sea-deep text-xs font-bold uppercase tracking-wide hover:text-coral transition">
+              <span class="details-label">View trip details</span>
+              <svg class="details-chevron transition-transform" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+            </button>
+            <div class="details-panel hidden mt-4 grid grid-cols-1 sm:grid-cols-3 gap-4 pb-1">
+              ${listBlock('Highlights', item.highlights)}
+              ${listBlock('Included', item.included)}
+              ${listBlock('Bring', item.bring)}
+            </div>
+          </div>
+          <div class="ticket-divider ticket-notch-left ticket-notch-right relative mx-0" style="--notch-bg:#FFFCF6"></div>
+          <div class="p-6 pt-4 flex items-center justify-between">
+            <div>
+              <p class="font-display font-bold text-2xl text-sea-deep">${item.price}</p>
+              <p class="font-mono text-[10px] tracking-widest text-ink/35 mt-0.5">TICKET · RX-${100 + idx}</p>
+            </div>
+            <button type="button" data-action="book" class="bg-sea-deep hover:bg-sea active:scale-95 transition text-white text-sm font-semibold px-5 py-3 rounded-full">Book Now</button>
+          </div>
+        </div>
+      </article>`;
+  }
+
+  function render() {
+    const query = document.getElementById('searchInput').value.trim().toLowerCase();
+    const grid = document.getElementById('cardsGrid');
+    const hubBanner = document.getElementById('hubBanner');
+
+    const hub = HUB_INFO[currentFilter];
+    if (hub) {
+      hubBanner.classList.remove('hidden');
+      hubBanner.innerHTML = `
+        <div class="bg-sea-deep rounded-3xl px-7 py-6 text-paper">
+          <p class="text-coral font-bold text-xs tracking-[0.18em] uppercase">Dedicated hub</p>
+          <h3 class="font-display font-semibold text-2xl mt-1">${hub.title}</h3>
+          <p class="text-paper/70 text-sm mt-1.5 max-w-2xl">${hub.desc}</p>
+        </div>`;
+    } else {
+      hubBanner.classList.add('hidden');
+      hubBanner.innerHTML = '';
+    }
+
+    const filtered = EXCURSIONS
+      .map((item, idx) => ({ item, idx }))
+      .filter(({ item }) => {
+        const matchesCategory = currentFilter === 'all' || item.category === currentFilter;
+        const haystack = (item.title + ' ' + item.tagline + ' ' + item.desc).toLowerCase();
+        const matchesQuery = !query || haystack.includes(query);
+        return matchesCategory && matchesQuery;
+      });
+
+    grid.innerHTML = filtered.map(({ item, idx }) => cardTemplate(item, idx)).join('');
+    document.getElementById('noResults').classList.toggle('hidden', filtered.length !== 0);
+  }
+
+  // Event delegation for dynamically rendered cards (Book Now + details toggle)
+  document.getElementById('cardsGrid').addEventListener('click', (e) => {
+    const bookBtn = e.target.closest('[data-action="book"]');
+    const toggleBtn = e.target.closest('[data-action="toggle-details"]');
+    const card = e.target.closest('.excursion-card');
+    if (!card) return;
+    const idx = parseInt(card.dataset.idx, 10);
+
+    if (bookBtn) {
+      openBookingModal(EXCURSIONS[idx].title);
+    } else if (toggleBtn) {
+      const panel = card.querySelector('.details-panel');
+      const chevron = toggleBtn.querySelector('.details-chevron');
+      const label = toggleBtn.querySelector('.details-label');
+      const isHidden = panel.classList.contains('hidden');
+      panel.classList.toggle('hidden');
+      chevron.style.transform = isHidden ? 'rotate(180deg)' : 'rotate(0deg)';
+      label.textContent = isHidden ? 'Hide trip details' : 'View trip details';
+    }
+  });
+
+  function populateExcursionSelect() {
+    const select = document.getElementById('excursionSelect');
+    EXCURSIONS.forEach(item => {
+      const opt = document.createElement('option');
+      opt.value = item.title;
+      opt.textContent = item.title;
+      select.appendChild(opt);
+    });
+  }
+
+  populateExcursionSelect();
+  render();
+
+
+  /* ---------- Mobile menu ---------- */
+  const menuToggle = document.getElementById('menuToggle');
+  const mobileMenu = document.getElementById('mobileMenu');
+  const menuIconOpen = document.getElementById('menuIconOpen');
+  const menuIconClose = document.getElementById('menuIconClose');
+  menuToggle.addEventListener('click', () => {
+    const isHidden = mobileMenu.classList.contains('hidden');
+    mobileMenu.classList.toggle('hidden');
+    menuIconOpen.classList.toggle('hidden', isHidden);
+    menuIconClose.classList.toggle('hidden', !isHidden);
+    header.classList.toggle('bg-sea-deep/95', isHidden);
+  });
+  document.querySelectorAll('#mobileMenu a').forEach(a => a.addEventListener('click', () => {
+    mobileMenu.classList.add('hidden');
+    menuIconOpen.classList.remove('hidden');
+    menuIconClose.classList.add('hidden');
+  }));
+
+  /* ---------- Booking modal ---------- */
+  const backdrop = document.getElementById('bookingBackdrop');
+  const formView = document.getElementById('bookingFormView');
+  const successView = document.getElementById('bookingSuccessView');
+  const excursionSelect = document.getElementById('excursionSelect');
+  const bookingDate = document.getElementById('bookingDate');
+  bookingDate.min = new Date().toISOString().split('T')[0];
+
+  function openBookingModal(excursionName) {
+    formView.classList.remove('hidden');
+    successView.classList.add('hidden');
+    if (excursionName) excursionSelect.value = excursionName;
+    backdrop.classList.remove('hidden');
+    backdrop.classList.add('flex');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeBookingModal() {
+    backdrop.classList.add('hidden');
+    backdrop.classList.remove('flex');
+    document.body.style.overflow = '';
+  }
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !backdrop.classList.contains('hidden')) closeBookingModal();
+  });
+
+  function stepGuests(delta) {
+    const input = document.getElementById('guestCount');
+    let val = parseInt(input.value, 10) + delta;
+    val = Math.max(1, Math.min(20, val));
+    input.value = val;
+  }
+
+  function submitBooking(e) {
+    e.preventDefault();
+    const btn = document.getElementById('bookingSubmitBtn');
+    btn.disabled = true;
+    btn.innerHTML = 'Sending…';
+
+    // NOTE: wire this up to your backend, booking API, or a form service (e.g. Formspree/EmailJS) to actually deliver requests.
+    const payload = {
+      excursion: excursionSelect.value,
+      date: bookingDate.value,
+      guests: document.getElementById('guestCount').value
+    };
+    console.log('Booking inquiry submitted:', payload);
+
+    setTimeout(() => {
+      formView.classList.add('hidden');
+      successView.classList.remove('hidden');
+      btn.disabled = false;
+      btn.innerHTML = 'Send Booking Request';
+      document.getElementById('bookingForm').reset();
+      document.getElementById('guestCount').value = 2;
+    }, 700);
+  }
+</script>
+
+</body>
+</html>
