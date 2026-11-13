@@ -66,6 +66,9 @@
   /* Custom scrollbar for category rail on mobile */
   .no-scrollbar::-webkit-scrollbar{ display:none; }
   .no-scrollbar{ -ms-overflow-style:none; scrollbar-width:none; }
+  /* Excursion photo gallery (swipe on phones, scroll on desktop) */
+  .photo-track{ position:absolute; inset:0; display:flex; overflow-x:auto; scroll-snap-type:x mandatory; -webkit-overflow-scrolling:touch; }
+  .photo-slide{ flex:0 0 100%; width:100%; height:100%; object-fit:cover; scroll-snap-align:center; display:block; }
 
   /* Ticket perforation: two half-circle notches cut from the card edges, colored to match the page section behind the card */
   .ticket-notch-left::before,
@@ -1106,6 +1109,51 @@
     }
   ];
 
+  /* ---------- Excursion photos ----------
+     To add photos: put image files in images/excursions/ and list them below
+     under the excursion's title. First photo = the cover. Leave [] for none
+     (the card keeps its illustration). Recommended: landscape JPG, 1200x720, under 300 KB. */
+  const PHOTOS = {
+    "The Snigg Shipwreck Tour": [],
+    "The Secret Underwater Garden": [],
+    "Pigeon Key Swim with Nurse Sharks": [],
+    "East End Mangrove Tour": [],
+    "Water Bikes": [],
+    "Jet Ski Rentals & Tours": [],
+    "Parasailing": [],
+    "Glass Bottom Boat Tour": [],
+    "Dolphin Excursion": [],
+    "Catamaran Cruises": [],
+    "Island Hopping": [],
+    "Comprehensive Island Tour": [],
+    "Dune Buggies": [],
+    "ATV Adventure": [],
+    "Horseback Riding": [],
+    "Family Canopy Zipline Circuit": [],
+    "Extreme Ridge Zipline Course": [],
+    "Ocean View Coastal Zipline": [],
+    "Monkey & Wildlife Rescue Sanctuary": [],
+    "Sloth Encounter & Botanical Garden": [],
+    "Tropical Bird Aviary & Botanical Gardens": []
+  };
+
+  function mediaTemplate(item) {
+    const photos = (PHOTOS[item.title] || []).filter(Boolean);
+    if (!photos.length) return sceneSVG(item.icon, item.c1, item.c2, item.alt);
+    const slides = photos.map((src, i) => `
+      <img src="${src}" alt="${item.alt}${photos.length > 1 ? ' (photo ' + (i + 1) + ')' : ''}" loading="lazy" decoding="async"
+           class="photo-slide w-full h-full object-cover shrink-0 snap-center" onerror="this.remove()">`).join('');
+    const dots = photos.length > 1 ? `
+      <div class="absolute bottom-3 left-0 right-0 flex justify-center gap-1.5 z-10 pointer-events-none">
+        ${photos.map((_, i) => `<span class="photo-dot w-1.5 h-1.5 rounded-full ${i === 0 ? 'bg-white' : 'bg-white/50'}"></span>`).join('')}
+      </div>
+      <span class="absolute top-4 right-4 z-10 bg-black/45 text-white text-[11px] font-bold px-2.5 py-1 rounded-full">${photos.length} photos</span>` : '';
+    return `
+      <div class="absolute inset-0">${sceneSVG(item.icon, item.c1, item.c2, item.alt)}</div>
+      <div class="photo-track absolute inset-0 flex overflow-x-auto snap-x snap-mandatory no-scrollbar">${slides}</div>
+      ${dots}`;
+  }
+
   const HUB_INFO = {
     zipline: {
       title: "Roatan Zip Lines Portal",
@@ -1150,9 +1198,9 @@
     return `
       <article class="excursion-card" data-idx="${idx}" data-category="${item.category}" data-title="${item.title.toLowerCase()}" data-desc="${item.desc.toLowerCase()}">
         <div class="bg-paper rounded-[1.75rem] overflow-hidden shadow-card card-lift relative h-full flex flex-col">
-          <div class="relative h-48">
-            ${sceneSVG(item.icon, item.c1, item.c2, item.alt)}
-            <div class="absolute inset-0 bg-gradient-to-t from-black/25 to-transparent"></div>
+          <div class="relative h-48 overflow-hidden">
+            ${mediaTemplate(item)}
+            <div class="absolute inset-0 bg-gradient-to-t from-black/25 to-transparent pointer-events-none"></div>
             <span class="absolute top-4 left-4 bg-coral text-white text-xs font-bold px-3 py-1.5 rounded-full shadow">${item.badge}</span>
           </div>
           <div class="p-6 pb-3 flex-1 flex flex-col">
@@ -1219,6 +1267,14 @@
       });
 
     grid.innerHTML = filtered.map(({ item, idx }) => cardTemplate(item, idx)).join('');
+    grid.querySelectorAll('.photo-track').forEach(track => {
+      const dots = track.parentElement.querySelectorAll('.photo-dot');
+      if (!dots.length) return;
+      track.addEventListener('scroll', () => {
+        const i = Math.round(track.scrollLeft / track.clientWidth);
+        dots.forEach((d, j) => { d.classList.toggle('bg-white', j === i); d.classList.toggle('bg-white/50', j !== i); });
+      }, { passive: true });
+    });
     document.getElementById('noResults').classList.toggle('hidden', filtered.length !== 0);
   }
 
