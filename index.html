@@ -695,6 +695,7 @@
   /* ---------- Excursion catalog data ---------- */
   /* ---------- Self-contained thumbnail illustrations (no network dependency) ---------- */
   const ICONS = {
+    fish: '<path d="M3 12c3.5-4.5 10-5 14.5-1.5L21 8v8l-3.5-2.5C13 17 6.5 16.5 3 12z"/><circle cx="7.5" cy="11.3" r="0.8" fill="currentColor" stroke="none"/>',
     shipwreck: '<path d="M2 17l2-6h14l2 6"/><path d="M8 11V5l2-2h2l2 2v6"/><path d="M2 17c1.5 2 3 2 4.5 0s3-2 4.5 0 3 2 4.5 0 3-2 4.5 0"/><circle cx="17" cy="6" r="0.8" fill="currentColor" stroke="none"/><circle cx="19" cy="9" r="0.6" fill="currentColor" stroke="none"/>',
     coral: '<path d="M12 20v-9"/><path d="M12 11c-3.2 0-5.2-2.1-5.2-5.3"/><path d="M12 11c3.2 0 5.2-2.1 5.2-5.3"/><path d="M12 15c-2.6 0-4.3-1.6-4.3-4.2"/><path d="M12 15c2.6 0 4.3-1.6 4.3-4.2"/>',
     shark: '<path d="M2 15.5c4-6.5 14-6.5 18-1-3 2.8-6 3.7-8 3.7-3 5.3-10 5.3-10 5.3s2-3.5 1-5.4c-1-1-1-1.7-1-2.6z"/><circle cx="15" cy="13" r="0.6" fill="currentColor" stroke="none"/>',
@@ -738,6 +739,22 @@
 
   const EXCURSIONS = [
     // ---------- WATER & REEF ----------
+    {
+      title: "Deep Sea Fishing Charter",
+      tagline: "Half day or full day chasing wahoo off Roatan",
+      desc: "Head offshore with a local captain who knows where the big fish run. Troll the deep blue water off Roatan for wahoo and other game fish, then bring your catch back to the beach for the photo you will show everyone at home. Choose a half day or go all in with a full day on the water.",
+      duration: "Half day or full day",
+      price: "Ask for rates",
+      badge: "Captain's Pick",
+      category: "water",
+      icon: "fish",
+      c1: "#0A3F3B",
+      c2: "#12786D",
+      alt: "Guests holding a large wahoo caught on a Roatan deep sea fishing charter",
+      highlights: ["Half day or full day trips", "Wahoo and other game fish", "Local captain who knows the waters", "Photo with your catch on the beach"],
+      included: ["Captain & boat", "Fishing rods, tackle & bait", "Bottled water"],
+      bring: ["Sunscreen & sunglasses", "Hat", "Snacks or lunch for full day", "Camera for your trophy shot"]
+    },
     {
       title: "The Snigg Shipwreck Tour",
       tagline: "A 120-year-old wreck, hidden channels & mangrove tunnels in one day",
@@ -1114,6 +1131,12 @@
      under the excursion's title. First photo = the cover. Leave [] for none
      (the card keeps its illustration). Recommended: landscape JPG, 1200x720, under 300 KB. */
   const PHOTOS = {
+    "Deep Sea Fishing Charter": [
+      "images/excursions/deep-sea-fishing-1.jpg",
+      "images/excursions/deep-sea-fishing-2.jpg",
+      "images/excursions/deep-sea-fishing-3.jpg",
+      "images/excursions/deep-sea-fishing-4.jpg"
+    ],
     "The Snigg Shipwreck Tour": [
       "images/excursions/snigg-shipwreck-1.jpg",
       "images/excursions/snigg-shipwreck-2.jpg",
@@ -1274,9 +1297,9 @@
             <span class="absolute top-4 left-4 bg-coral text-white text-xs font-bold px-3 py-1.5 rounded-full shadow">${item.badge}</span>
           </div>
           <div class="p-6 pb-3 flex-1 flex flex-col">
-            <div class="flex items-center gap-1.5 text-coral text-sm font-semibold">
+            ${item.reviews ? `<div class="flex items-center gap-1.5 text-coral text-sm font-semibold">
               <span>★★★★★</span><span class="text-ink/50 font-medium">5.0 (${item.reviews})</span>
-            </div>
+            </div>` : ''}
             <h3 class="font-display font-semibold text-xl mt-2 text-sea-deep">${item.title}</h3>
             <p class="text-sea/80 text-xs font-semibold mt-1">${item.tagline}</p>
             <p class="text-ink/65 text-sm mt-2 leading-relaxed">${item.desc}</p>
